@@ -31,7 +31,7 @@ public class VersionChecker {
                             "\u001B[33m, latest version: \u001B[32m" + latestVersion + "\u001B[0m.");
                     logWarning("Please update the plugin. Choose one of the following links to download:");
 
-                    console.sendMessage(B0rain.PREFIX + "\u001B[36m1. Black-Minecraft: \u001B[0mhttps://bm.wtf/resources/6149/");
+                    console.sendMessage(B0rain.PREFIX + "\u001B[36m1. Black-Minecraft: \u001B[0mhttps://bm.wtf/resources/6141/");
                     console.sendMessage(B0rain.PREFIX + " ");
                 });
             } else {
