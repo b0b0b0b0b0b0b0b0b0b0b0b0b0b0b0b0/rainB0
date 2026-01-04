@@ -17,17 +17,20 @@ public class RainEffectManager {
     private final ConfigManager configManager;
     private BukkitRunnable task;
     private final Set<UUID> playersWithPluginEffect;
-    private final int slownessLevel;
-    private final int slownessDuration;
+    private final PotionEffectType slownessType;
+    private final PotionEffect slownessEffect;
 
     public RainEffectManager(B0rain plugin, ConfigManager configManager) {
         this.plugin = plugin;
         this.configManager = configManager;
         this.playersWithPluginEffect = new HashSet<>();
-        this.slownessLevel = configManager.getSlownessLevel();
-        this.slownessDuration = configManager.getSlownessDurationTicks();
+        this.slownessType = PotionEffectHelper.getSlownessType();
+        this.slownessEffect = PotionEffectHelper.createSlownessEffect(
+                configManager.getSlownessDurationTicks(),
+                configManager.getSlownessLevel()
+        );
         
-        if (PotionEffectHelper.getSlownessType() == null) {
+        if (slownessType == null) {
             plugin.getLogger().severe("Failed to load SLOWNESS potion effect type! Plugin may not work correctly.");
         }
     }
@@ -40,8 +43,7 @@ public class RainEffectManager {
         task = new BukkitRunnable() {
             @Override
             public void run() {
-                PotionEffectType slownessType = PotionEffectHelper.getSlownessType();
-                if (slownessType == null) {
+                if (slownessType == null || slownessEffect == null) {
                     return;
                 }
 
@@ -59,20 +61,11 @@ public class RainEffectManager {
                     );
 
                     if (inRain) {
-                        PotionEffect slowness = PotionEffectHelper.createSlownessEffect(
-                                slownessDuration,
-                                slownessLevel
-                        );
-                        if (slowness != null) {
-                            player.addPotionEffect(slowness);
-                            playersWithPluginEffect.add(playerId);
-                        }
+                        player.addPotionEffect(slownessEffect);
+                        playersWithPluginEffect.add(playerId);
                     } else {
                         if (playersWithPluginEffect.contains(playerId)) {
-                            PotionEffect currentEffect = player.getPotionEffect(slownessType);
-                            if (PotionEffectHelper.isPluginEffect(currentEffect, slownessLevel, slownessDuration + 20)) {
-                                player.removePotionEffect(slownessType);
-                            }
+                            player.removePotionEffect(slownessType);
                             playersWithPluginEffect.remove(playerId);
                         }
                     }
@@ -89,15 +82,11 @@ public class RainEffectManager {
             task = null;
         }
 
-        PotionEffectType slownessType = PotionEffectHelper.getSlownessType();
         if (slownessType != null) {
             for (UUID playerId : new HashSet<>(playersWithPluginEffect)) {
                 Player player = Bukkit.getPlayer(playerId);
                 if (player != null) {
-                    PotionEffect currentEffect = player.getPotionEffect(slownessType);
-                    if (PotionEffectHelper.isPluginEffect(currentEffect, slownessLevel, slownessDuration + 20)) {
-                        player.removePotionEffect(slownessType);
-                    }
+                    player.removePotionEffect(slownessType);
                 }
             }
             playersWithPluginEffect.clear();
